@@ -73,7 +73,7 @@ jobs:
       image_context: .
       image_file: "./Dockerfile"
       docker_registry: "ghcr.io"
-      docker_repository: "Shinotobira"
+      docker_repository: "shinotobira"
     secrets:
       DOCKER_USERNAME: ${{ github.actor }}
       DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }} 
