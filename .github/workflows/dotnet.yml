@@ -50,7 +50,7 @@ jobs:
       working-directory: ./tests/Leonardo.Tests
       run: dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=./coverage/opencover.xml
     - name: Publish Fibonacci to Nugget
-      working-directory: ./src/Leonardo.Fibonacci
+      working-directory: ./src/Leonardo
       if: github.ref == 'refs/heads/main'
       run: | 
         dotnet pack -c Release -p:PackageVersion=${{ needs.tags.outputs.new_version }}
