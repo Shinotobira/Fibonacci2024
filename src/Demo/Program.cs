@@ -1,9 +1,44 @@
 ﻿using System.Diagnostics;
+using Demo;
 using Leonardo;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 var stopwatch = new Stopwatch();
+
+var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");   
+IConfiguration configuration = new ConfigurationBuilder() 
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)   
+    .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables()        
+    .Build();
+
+var applicationName = configuration.GetValue<string>("Application:Name");  
+var applicationMessage = configuration.GetValue<string>("Application:Message");   
+Console.WriteLine($"Application Name : {applicationName}");   
+Console.WriteLine($"Application Message : {applicationMessage}"); 
+
+var applicationSection = configuration.GetSection("Application"); 
+var applicationConfig = applicationSection.Get<ApplicationConfig>(); 
+
+var services = new ServiceCollection();
+services.AddTransient<Fibonacci>(); 
+services.AddLogging(configure => configure.AddConsole());
+services.AddDbContext<FibonacciDataContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+
+
+await using var serviceProvider = services.BuildServiceProvider();
+var logger = serviceProvider.GetService<ILogger<Program>>();    
+logger.LogInformation("Application Name : {ApplicationConfigName}", applicationConfig.Name);   
+logger.LogInformation("Application Message : {ApplicationConfigMessage}", applicationConfig.Message);  
+
+var fibonacci = serviceProvider.GetService<Fibonacci>();
 stopwatch.Start();
-var results = await Fibonacci.RunAsync(args);
+await using FibonacciDataContext context = new();
+var results = await fibonacci.RunAsync(args);
 stopwatch.Stop();
 Console.WriteLine($"Elapsed time: {stopwatch.ElapsedMilliseconds}ms");
 foreach (var result in results)
